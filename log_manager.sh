@@ -34,65 +34,81 @@ function checkFile () {
         return 1
     fi
 
-    # awk -v regex="$regex" '
-    #     $0 ~ regex { valid++ }
-    #     $0 !~ regex { invalid++; print "Línea inválida:", $0 }
-    #     { print $1 }
-    #     END { print "Válidas:", valid; print "Inválidas:", invalid }
-    # ' "$file_path"
     awk -v regex="$regex" '
       BEGIN {
         valid = 0;
         invalid = 0;
 
-        # Arrays para nombres legibles de severity y facility
+        # Arrays for human-readable severity and facility names
         split("emerg alert crit err warning notice info debug", sevArray, " ");
-        numFac = split("kern user mail daemon auth syslog lpr news uucp cron authpriv ftp ntp security console solaris", facArray, " ");
+        numFac = split("kern user mail daemon auth syslog lpr news uucp cron authpriv ftp ntp security console clock", facArray, " ");
       }
 
       {
         if ($0 ~ regex) {
           valid++;
 
-          # Extraer PRI desde <nn>
+          # Extract PRI from <nn>
           match($0, /<([0-9]+)>/, m);
           if (m[1]) {
             pri = m[1] + 0;
             severity = pri % 8;
             facility = int(pri / 8);
 
-            severityStr = sevArray[severity + 1];
-            facilityStr = (facility + 1 <= numFac) ? facArray[facility + 1] : "desconocido";
+            sevKey = sevArray[severity + 1];
+            facKey = (facility + 1 <= numFac) ? facArray[facility + 1] : "unknown";
+
+            # Counting by key
+            severityCount[sevKey]++;
+            facilityCount[facKey]++;
+            sevFacCount[sevKey "|" facKey]++;
 
             msgStart = index($0, "- -");
             if (msgStart > 0 && msgStart + 4 <= length($0)) {
               logMsg = substr($0, msgStart + 4);
             } else {
-              logMsg = "[sin mensaje]";
+              logMsg = "[no message]";
             }
 
-            printf "%d\tSeverity: %s\tFacility: %s\t%s\n", severity, severityStr, facilityStr, logMsg;
+            printf "%d\tSeverity: %s\tFacility: %s\t%s\n", severity, sevKey, facKey, logMsg;
           } else {
-            print "⚠️ PRI no encontrado:", $0;
+            print "⚠️ PRI not found:", $0;
           }
         } else {
           invalid++;
-          print "❌ Línea inválida:", $0;
+          print "❌ Invalid line:", $0;
         }
       }
 
       END {
-        print "\n📊 Resumen:";
-        print "Válidas:", valid;
-        print "Inválidas:", invalid;
+        print "\n📊 Report:";
+        print "Valid lines:", valid;
+        print "Invalid lines:", invalid;
+
+        print "\n🔢 Severities:";
+        for (i = 0; i < 8; i++) {
+            sev = sevArray[i + 1];
+            count = (sev in severityCount) ? severityCount[sev] : 0;
+            printf "  %s: %d\n", sev, count;
+        }
+
+        print "\n🏢 Facilities:";
+        for (i = 0; i < numFac; i++) {
+            fac = facArray[i + 1];
+            count = (fac in facilityCount) ? facilityCount[fac] : 0;
+            printf "  %s: %d\n", fac, count;
+        }
       }
-' "$file_path" | sort -n
+
+  ' "$file_path" > temp.out
+
+  grep '^[0-9]' temp.out | sort -n | cut -f2-
+  grep -v '^[0-9]' temp.out
+  [ -f temp.out ] && rm temp.out
  }
 
 function main() {
     
-    echo "Starting main function"
-
     checkFile "$1"
  
     return 0
@@ -101,13 +117,6 @@ function main() {
 trap 'handleError "${LINENO}" "${BASH_COMMAND}"' ERR #if there are functions, to add stack trace!
 
 trap ctrl_c INT
-
-echo "Shell declarada (por \$SHELL): $SHELL"
-echo "Shell usada por el script (por \$0): $0"
-echo "Comando ejecutándose (por ps):"
-ps -p $$ -o args=
-
-echo "Imprimiendo prueba por pantalla"
 
 main "$@"
 
