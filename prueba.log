@@ -1,0 +1,9 @@
+<2>1 2025-08-13T09:26:00Z localhost kernel - - - Critical kernel event
+<1>1 2025-08-13T09:26:01Z localhost user - - - Emergency user event
+<28>1 2025-08-13T09:26:02Z localhost debug - - - Warning from debug system
+<18>1 2025-08-13T09:26:03Z localhost kernel - - - Informational kernel message
+<21>1 2025-08-13T09:26:04Z localhost debug - - - Notice from debug system
+<0>1 2025-08-13T09:26:05Z localhost kernel - - - Emergency kernel failure
+<35>1 2025-08-13T09:26:06Z localhost auth - - - Error in authentication
+<9>1 2025-08-13T09:26:07Z localhost user - - - Warning from user space
+<20>1 2025-08-13T09:26:08Z localhost kernel - - - Kernel warning
