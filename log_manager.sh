@@ -24,6 +24,19 @@ function ctrl_c() {
     exit 0
 }
 
+function analyzeLog {
+    local log=$1
+    local pri
+    local sev
+    local fac
+
+    pri="$(echo "${log}" | awk '{match($1, /<([0-9]+)>/, m); print m[1]}')"
+    sev=$((pri % 8))
+    fac=$((pri / 8))
+
+    echo "Severity: ${sev}, Facility: ${fac}"
+}
+
 function checkFile() {
 
     local file_path="$1"
@@ -42,6 +55,7 @@ function checkFile() {
         ((line_number++))
         if grep -Pq "${regex}" <<<"${line}"; then
             ((valid++))
+            analyzeLog "${line}"
         else
             ((invalid++))
             echo "log in line ${line_number} not known"
@@ -57,15 +71,12 @@ function checkFile() {
 
 function main() {
 
-    echo -e "[+][+][+] Starting program... [+][+][+]"
-    sleep 5
-
     checkFile "$1"
 
     return 0
 }
 
-trap 'handleError "${LINENO}" "${BASH_COMMAND}"' ERR #if there are functions, to add stack trace!
+trap 'handleError "${LINENO}" "${BASH_COMMAND}"' ERR
 
 trap ctrl_c INT
 

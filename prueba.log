@@ -1,9 +1,17 @@
-<2>1 2025-08-13T09:26:00Z localhost kernel - - - Critical kernel event
-<1>1 2025-08-13T09:26:01Z localhost user - - - Emergency user event
-<28>1 2025-08-13T09:26:02Z localhost debug - - - Warning from debug system
-<18>1 2025-08-13T09:26:03Z localhost kernel - - - Informational kernel message
-<21>1 2025-08-13T09:26:04Z localhost debug - - - Notice from debug system
-<0>1 2025-08-13T09:26:05Z localhost kernel - - - Emergency kernel failure
-<35>1 2025-08-13T09:26:06Z localhost auth - - - Error in authentication
-<9>1 2025-08-13T09:26:07Z localhost user - - - Warning from user space
-<20>1 2025-08-13T09:26:08Z localhost kernel - - - Kernel warning
+<8>1 2025-08-13T09:30:00Z localhost user - - - [EMERGENCY][user] System is unusable due to user-level failure
+<81>1 2025-08-13T09:30:01Z localhost authpriv - - - [ALERT][authpriv] Immediate action required: privilege escalation
+<17>1 2025-08-13T09:30:02Z localhost mail - - - [ALERT][mail] Mail queue overflow detected
+<26>1 2025-08-13T09:30:03Z localhost daemon - - - [CRITICAL][daemon] Daemon failed to start: missing config
+<34>1 2025-08-13T09:30:04Z localhost auth - - - [CRITICAL][auth] Authentication subsystem failure
+<42>1 2025-08-13T09:30:05Z localhost syslog - - - [CRITICAL][syslog] Syslog daemon crashed unexpectedly
+<51>1 2025-08-13T09:30:06Z localhost lpr - - - [ERROR][lpr] Print spooler encountered fatal error
+<59>1 2025-08-13T09:30:07Z localhost news - - - [ERROR][news] News feed parsing failed
+<68>1 2025-08-13T09:30:08Z localhost uucp - - - [WARNING][uucp] UUCP transmission delay detected
+<76>1 2025-08-13T09:30:09Z localhost clock - - - [WARNING][clock] Clock drift exceeds threshold
+<84>1 2025-08-13T09:30:10Z localhost authpriv - - - [WARNING][authpriv] Suspicious login attempt flagged
+<93>1 2025-08-13T09:30:11Z localhost ftp - - - [NOTICE][ftp] FTP connection established successfully
+<101>1 2025-08-13T09:30:12Z localhost ntp - - - [NOTICE][ntp] NTP sync completed with minor offset
+<110>1 2025-08-13T09:30:13Z localhost security - - - [INFORMATIONAL][security] Security scan completed
+<119>1 2025-08-13T09:30:14Z localhost console - - - [DEBUG][console] Console input buffer flushed
+<127>1 2025-08-13T09:30:15Z localhost solaris - - - [DEBUG][solaris] Solaris service restarted successfully
+<31>1 2025-08-13T09:30:16Z localhost daemon - - - [DEBUG][daemon] Debugging daemon initialization
