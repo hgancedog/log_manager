@@ -27,14 +27,40 @@ function ctrl_c() {
 function analyzeLog {
     local log=$1
     local pri
+    local date
     local sev
     local fac
+    local log_msg
+
+    # Counting arrays
+    sevArr=("emerg" "alert" "crit" "err" "warn" "notice" "info" "debug")
+    facArr=("kern" "user" "mail" "daemon" "auth" "syslog" "lpr" "news" "uucp" "cron" "authpriv" "ftp" "ntp" "audit" "alert")
 
     pri="$(echo "${log}" | awk '{match($1, /<([0-9]+)>/, m); print m[1]}')"
+    date="$(echo "$log" | awk '{print $2}')"
     sev=$((pri % 8))
     fac=$((pri / 8))
 
-    echo "Severity: ${sev}, Facility: ${fac}"
+    log_msg=$(echo "${log}" | awk '{print substr($0, index($0, "- -") + length("- -"))}')
+
+    # Building final log
+    while read -r sev fac date rest; do
+
+        sevStr="${sevArr[$sev]}"
+        length_facArr="${#facArr[@]}"
+
+        if [ "${fac}" -lt "${length_facArr}" ]; then
+            facStr="${facArr[$fac]}"
+        else
+            facStr="[unknown]"
+        fi
+
+        printf "%-8s %-10s %s %s\n" "${sevStr}" "${facStr}" "${date}" "${rest}"
+    done < <(
+        printf "%d %d %s %s\n" "${sev}" "${fac}" "${date}" "${log_msg}" |
+            sort -k1,1n -k3,3
+    )
+
 }
 
 function checkFile() {
