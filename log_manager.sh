@@ -26,11 +26,13 @@ function ctrl_c() {
 
 function printCounts {
 
+    echo -e "--------- Severity ---------------------------"
+
     for sevName in "${sevArr[@]}"; do
         echo "${sevName}"
     done
 
-    echo -e "----------------------------------------------------"
+    echo -e "--------- Severity Counts ---------------------------"
 
     # Necesitamos recorrer el array de nombres para poner los severity por orden (0,1, etc) y ya despues convertir el valor al nombre del severity
     # e imprimir el resultado de sevCount
@@ -40,15 +42,23 @@ function printCounts {
         echo "${key}: ${count}"
     done
 
-    echo -e "----------------------------------------------------"
+    echo -e "------------ Facility --------------------------------------"
 
+    for facName in "${facArr[@]}"; do
+        echo "${facName}"
+    done
+
+    echo -e "--------- Facility Counts ---------------------------"
+
+    # Necesitamos recorrer el array de nombres para poner los severity por orden (0,1, etc) y ya despues convertir el valor al nombre del severity
+    # e imprimir el resultado de sevCount
     for ((i = 0; i < ${#facArr[@]}; i++)); do
         key="${facArr[$i]}"
         count="${facCountArr[$key]:-0}"
         echo "${key}: ${count}"
     done
 
-    echo -e "----------------------------------------------------"
+    echo -e "------------- Severity:Facility -------------------------------"
 
     for key in "${!sevFacCountArr[@]}"; do
         echo "$key: ${sevFacCountArr[$key]}"
@@ -69,26 +79,27 @@ function analyzeLog {
     date="$(echo "$log" | awk '{print $2}')"
     sev=$((pri % 8))
     fac=$((pri / 8))
+
+    if [ $fac -gt "${#facArr[@]}" ]; then
+        fac="$(("${#facArr[@]}" - 1))"
+    fi
+
     log_msg=$(echo "${log}" | awk '{print substr($0, index($0, "- -") + length("- -"))}')
 
     sevKey="${sevArr["$sev"]}"
     facKey="${facArr["$fac"]}"
 
+    # Condicion para cualquier Facility > 15 lo asigne como [Unknown], que es el ultimo elemento del array
+
     ((sevCountArr["$sevKey"]++))
     ((facCountArr["$facKey"]++))
-    ((sevFacCountArr["$sevKey:$facKey"]++))
+    ((sevFacCountArr["$sevKey" + "$facKey"]++))
 
     # Building final log
     # while read -r sev fac date rest; do
     #
     #     sevStr="${sevArr[$sev]}"
     #     length_facArr="${#facArr[@]}"
-    #
-    #     if [ "${fac}" -lt "${length_facArr}" ]; then
-    #         facStr="${facArr[$fac]}"
-    #     else
-    #         facStr="[unknown]"
-    #     fi
     #
     #     printf "%-8s %-10s %s %s\n" "${sevStr}" "${facStr}" "${date}" "${rest}"
     # done < <(
@@ -145,7 +156,7 @@ trap ctrl_c INT
 
 # Severity and Facility arrays
 sevArr=("emerg" "alert" "crit" "err" "warn" "notice" "info" "debug")
-facArr=("kern" "user" "mail" "daemon" "auth" "syslog" "lpr" "news" "uucp" "cron" "authpriv" "ftp" "ntp" "audit" "alert" "solaris")
+facArr=("kern" "user" "mail" "daemon" "auth" "syslog" "lpr" "news" "uucp" "cron" "authpriv" "ftp" "ntp" "audit" "alert" "reserved" "[Unknown]")
 
 # Counting arrays
 declare -A sevCountArr facCountArr sevFacCountArr

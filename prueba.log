@@ -11,7 +11,9 @@
 <84>1 2025-08-13T09:30:10Z localhost authpriv - - - [WARNING][authpriv] Suspicious login attempt flagged
 <93>1 2025-08-13T09:30:11Z localhost ftp - - - [NOTICE][ftp] FTP connection established successfully
 <101>1 2025-08-13T09:30:12Z localhost ntp - - - [NOTICE][ntp] NTP sync completed with minor offset
-<110>1 2025-08-13T09:30:13Z localhost security - - - [INFORMATIONAL][security] Security scan completed
-<119>1 2025-08-13T09:30:14Z localhost console - - - [DEBUG][console] Console input buffer flushed
-<127>1 2025-08-13T09:30:15Z localhost solaris - - - [DEBUG][solaris] Solaris service restarted successfully
+<110>1 2025-08-13T09:30:13Z localhost security - - - [INFORMATIONAL][audit] Security scan completed
+<119>1 2025-08-13T09:30:14Z localhost console - - - [DEBUG][alert] Console input buffer flushed
+<127>1 2025-08-13T09:30:15Z localhost solaris - - - [DEBUG][reserved] Solaris service restarted successfully
 <31>1 2025-08-13T09:30:16Z localhost daemon - - - [DEBUG][daemon] Debugging daemon initialization
+<146>1 2025-08-13T09:30:17Z localhost local2 - - - [NOTICE][local2] Custom application heartbeat message
+<156>1 2025-08-13T09:30:18Z localhost local3 - - - [WARNING][local3] Database backup incomplete
