@@ -24,6 +24,37 @@ function ctrl_c() {
     exit 0
 }
 
+function printCounts {
+
+    for sevName in "${sevArr[@]}"; do
+        echo "${sevName}"
+    done
+
+    echo -e "----------------------------------------------------"
+
+    # Necesitamos recorrer el array de nombres para poner los severity por orden (0,1, etc) y ya despues convertir el valor al nombre del severity
+    # e imprimir el resultado de sevCount
+    for ((i = 0; i < ${#sevArr[@]}; i++)); do
+        key="${sevArr[$i]}"
+        count="${sevCountArr[$key]:-0}"
+        echo "${key}: ${count}"
+    done
+
+    echo -e "----------------------------------------------------"
+
+    for ((i = 0; i < ${#facArr[@]}; i++)); do
+        key="${facArr[$i]}"
+        count="${facCountArr[$key]:-0}"
+        echo "${key}: ${count}"
+    done
+
+    echo -e "----------------------------------------------------"
+
+    for key in "${!sevFacCountArr[@]}"; do
+        echo "$key: ${sevFacCountArr[$key]}"
+    done
+}
+
 function analyzeLog {
     local log=$1
     local pri
@@ -31,35 +62,39 @@ function analyzeLog {
     local sev
     local fac
     local log_msg
-
-    # Counting arrays
-    sevArr=("emerg" "alert" "crit" "err" "warn" "notice" "info" "debug")
-    facArr=("kern" "user" "mail" "daemon" "auth" "syslog" "lpr" "news" "uucp" "cron" "authpriv" "ftp" "ntp" "audit" "alert")
+    local sevKey
+    local facKey
 
     pri="$(echo "${log}" | awk '{match($1, /<([0-9]+)>/, m); print m[1]}')"
     date="$(echo "$log" | awk '{print $2}')"
     sev=$((pri % 8))
     fac=$((pri / 8))
-
     log_msg=$(echo "${log}" | awk '{print substr($0, index($0, "- -") + length("- -"))}')
 
+    sevKey="${sevArr["$sev"]}"
+    facKey="${facArr["$fac"]}"
+
+    ((sevCountArr["$sevKey"]++))
+    ((facCountArr["$facKey"]++))
+    ((sevFacCountArr["$sevKey:$facKey"]++))
+
     # Building final log
-    while read -r sev fac date rest; do
-
-        sevStr="${sevArr[$sev]}"
-        length_facArr="${#facArr[@]}"
-
-        if [ "${fac}" -lt "${length_facArr}" ]; then
-            facStr="${facArr[$fac]}"
-        else
-            facStr="[unknown]"
-        fi
-
-        printf "%-8s %-10s %s %s\n" "${sevStr}" "${facStr}" "${date}" "${rest}"
-    done < <(
-        printf "%d %d %s %s\n" "${sev}" "${fac}" "${date}" "${log_msg}" |
-            sort -k1,1n -k3,3
-    )
+    # while read -r sev fac date rest; do
+    #
+    #     sevStr="${sevArr[$sev]}"
+    #     length_facArr="${#facArr[@]}"
+    #
+    #     if [ "${fac}" -lt "${length_facArr}" ]; then
+    #         facStr="${facArr[$fac]}"
+    #     else
+    #         facStr="[unknown]"
+    #     fi
+    #
+    #     printf "%-8s %-10s %s %s\n" "${sevStr}" "${facStr}" "${date}" "${rest}"
+    # done < <(
+    #     printf "%d %d %s %s\n" "${sev}" "${fac}" "${date}" "${log_msg}" |
+    #         sort -k1,1n -k3,3
+    # )
 
 }
 
@@ -99,11 +134,20 @@ function main() {
 
     checkFile "$1"
 
+    printCounts
+
     return 0
 }
 
 trap 'handleError "${LINENO}" "${BASH_COMMAND}"' ERR
 
 trap ctrl_c INT
+
+# Severity and Facility arrays
+sevArr=("emerg" "alert" "crit" "err" "warn" "notice" "info" "debug")
+facArr=("kern" "user" "mail" "daemon" "auth" "syslog" "lpr" "news" "uucp" "cron" "authpriv" "ftp" "ntp" "audit" "alert" "solaris")
+
+# Counting arrays
+declare -A sevCountArr facCountArr sevFacCountArr
 
 main "$@"
