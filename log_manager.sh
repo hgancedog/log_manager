@@ -24,12 +24,19 @@ function ctrl_c() {
     exit 0
 }
 
+function updateCounts {
+    local sevKey="$1"
+    local facKey="$2"
+
+    ((sevCountArr["$sevKey"]++))
+    ((facCountArr["$facKey"]++))
+    ((sevFacCountArr["$sevKey:$facKey"]++))
+}
+
 function printFinalReport {
 
     # Final log parsed
     echo -e "--------- Log Messages Parsed  ---------------------------"
-
-    echo "${sevKeyMsg[0]} +++ ${sevKeyMsg[1]}"
 
     for ((i = 0; i < global_valid_logs; i++)); do
         printf "%-8s %-10s %s %s\n" "${sevKeyMsg[$i]}" "${facKeyMsg[$i]}" "${dateMsg[$i]}" "${log_msgMsg[$i]}"
@@ -60,15 +67,46 @@ function printFinalReport {
     for key in "${!sevFacCountArr[@]}"; do
         echo "$key: ${sevFacCountArr[$key]}"
     done
-}
 
-function updateCounts {
-    local sevKey="$1"
-    local facKey="$2"
+    echo -e "------------------2d Table -------------------------------------"
 
-    ((sevCountArr["$sevKey"]++))
-    ((facCountArr["$facKey"]++))
-    ((sevFacCountArr["$sevKey" + "$facKey"]++))
+    local term_width
+    term_width=$(tput cols)
+
+    local n_fac=${#facArr[@]}
+
+    local col_width
+    col_width=$((term_width / (n_fac + 3)))
+
+    echo -e "  Facility →"
+
+    # Cabecera de facilities
+    printf "%-${col_width}s|" "Severity↓"
+    for ((i = 0; i < n_fac; i++)); do
+        fac="${facArr[$i]}"
+        printf "%-${col_width}s" "$fac"
+    done
+    echo
+
+    # Línea de separación cabecera
+    printf '%*s' $((col_width)) '' | tr ' ' '-'
+    printf "+"
+    for ((i = 0; i < n_fac; i++)); do
+        printf '%*s' $((col_width)) '' | tr ' ' '-'
+    done
+    echo
+
+    # Filas de resultados
+    for sev in "${sevArr[@]}"; do
+        adjusted_width=$((col_width + 3))
+        printf "%-${adjusted_width}s|" " $sev"
+        for ((i = 0; i < n_fac; i++)); do
+            fac="${facArr[$i]}"
+            val="${sevFacCountArr["$sev:$fac"]:-0}"
+            printf "%-${col_width}s" "$val"
+        done
+        echo
+    done
 }
 
 function parseLog {
