@@ -26,12 +26,6 @@ function ctrl_c() {
 
 function printCounts {
 
-    echo -e "--------- Severity ---------------------------"
-
-    for sevName in "${sevArr[@]}"; do
-        echo "${sevName}"
-    done
-
     echo -e "--------- Severity Counts ---------------------------"
 
     # Necesitamos recorrer el array de nombres para poner los severity por orden (0,1, etc) y ya despues convertir el valor al nombre del severity
@@ -40,12 +34,6 @@ function printCounts {
         key="${sevArr[$i]}"
         count="${sevCountArr[$key]:-0}"
         echo "${key}: ${count}"
-    done
-
-    echo -e "------------ Facility --------------------------------------"
-
-    for facName in "${facArr[@]}"; do
-        echo "${facName}"
     done
 
     echo -e "--------- Facility Counts ---------------------------"
@@ -65,7 +53,7 @@ function printCounts {
     done
 }
 
-function analyzeLog {
+function parseLog {
     local log=$1
     local pri
     local date
@@ -77,19 +65,24 @@ function analyzeLog {
 
     pri="$(echo "${log}" | awk '{match($1, /<([0-9]+)>/, m); print m[1]}')"
     date="$(echo "$log" | awk '{print $2}')"
+    log_msg=$(echo "${log}" | awk '{print substr($0, index($0, "- -") + length("- -"))}')
+
     sev=$((pri % 8))
     fac=$((pri / 8))
 
-    if [ $fac -gt "${#facArr[@]}" ]; then
-        fac="$(("${#facArr[@]}" - 1))"
-    fi
-
-    log_msg=$(echo "${log}" | awk '{print substr($0, index($0, "- -") + length("- -"))}')
-
     sevKey="${sevArr["$sev"]}"
-    facKey="${facArr["$fac"]}"
 
-    # Condicion para cualquier Facility > 15 lo asigne como [Unknown], que es el ultimo elemento del array
+    # Get the last valid index of the array
+    last_fac_index=$((${#facArr[@]} - 1))
+
+    # Check if the calculated 'fac' value is a valid index for our array
+    if [ "$fac" -ge 0 ] && [ "$fac" -le "$last_fac_index" ]; then
+        # If it's valid, assign the correct facility name
+        facKey="${facArr[$fac]}"
+    else
+        # If it's out of range, assign the "[Unknown]" value directly
+        facKey="${facArr[$last_fac_index]}"
+    fi
 
     ((sevCountArr["$sevKey"]++))
     ((facCountArr["$facKey"]++))
@@ -127,7 +120,7 @@ function checkFile() {
         ((line_number++))
         if grep -Pq "${regex}" <<<"${line}"; then
             ((valid++))
-            analyzeLog "${line}"
+            parseLog "${line}"
         else
             ((invalid++))
             echo "log in line ${line_number} not known"
