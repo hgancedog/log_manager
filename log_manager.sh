@@ -24,7 +24,16 @@ function ctrl_c() {
     exit 0
 }
 
-function printCounts {
+function printFinalReport {
+
+    # Final log parsed
+    echo -e "--------- Log Messages Parsed  ---------------------------"
+
+    echo "${sevKeyMsg[0]} +++ ${sevKeyMsg[1]}"
+
+    for ((i = 0; i < global_valid_logs; i++)); do
+        printf "%-8s %-10s %s %s\n" "${sevKeyMsg[$i]}" "${facKeyMsg[$i]}" "${dateMsg[$i]}" "${log_msgMsg[$i]}"
+    done
 
     echo -e "--------- Severity Counts ---------------------------"
 
@@ -51,6 +60,15 @@ function printCounts {
     for key in "${!sevFacCountArr[@]}"; do
         echo "$key: ${sevFacCountArr[$key]}"
     done
+}
+
+function updateCounts {
+    local sevKey="$1"
+    local facKey="$2"
+
+    ((sevCountArr["$sevKey"]++))
+    ((facCountArr["$facKey"]++))
+    ((sevFacCountArr["$sevKey" + "$facKey"]++))
 }
 
 function parseLog {
@@ -84,22 +102,7 @@ function parseLog {
         facKey="${facArr[$last_fac_index]}"
     fi
 
-    ((sevCountArr["$sevKey"]++))
-    ((facCountArr["$facKey"]++))
-    ((sevFacCountArr["$sevKey" + "$facKey"]++))
-
-    # Building final log
-    # while read -r sev fac date rest; do
-    #
-    #     sevStr="${sevArr[$sev]}"
-    #     length_facArr="${#facArr[@]}"
-    #
-    #     printf "%-8s %-10s %s %s\n" "${sevStr}" "${facStr}" "${date}" "${rest}"
-    # done < <(
-    #     printf "%d %d %s %s\n" "${sev}" "${fac}" "${date}" "${log_msg}" |
-    #         sort -k1,1n -k3,3
-    # )
-
+    echo -e "${sevKey}|${facKey}|${date}|${log_msg}"
 }
 
 function checkFile() {
@@ -113,14 +116,27 @@ function checkFile() {
     fi
 
     local line_number=0
-    local valid=0
-    local invalid=0
+    local invalid_logs=0
 
     while IFS= read -r line; do
         ((line_number++))
         if grep -Pq "${regex}" <<<"${line}"; then
-            ((valid++))
-            parseLog "${line}"
+
+            ((global_valid_logs++))
+
+            local parsed
+            parsed="$(parseLog "${line}")"
+
+            IFS="|" read -r sevKey facKey date log_msg <<<"$parsed"
+
+            # Creating arrays with parsed elements for printing final log
+            sevKeyMsg+=("$sevKey")
+            facKeyMsg+=("$facKey")
+            dateMsg+=("$date")
+            log_msgMsg+=("$log_msg")
+
+            updateCounts "$sevKey" "$facKey"
+
         else
             ((invalid++))
             echo "log in line ${line_number} not known"
@@ -129,16 +145,18 @@ function checkFile() {
 
     echo -e "----------------Report--------------"
     echo "${line_number} logs analized"
-    echo "Valid: ${valid} logs"
-    echo "Invalid: ${invalid}"
+    echo "Valid: ${global_valid_logs} logs"
+    echo "Invalid: ${invalid_logs}"
 
 }
 
 function main() {
 
+    global_valid_logs=0
+
     checkFile "$1"
 
-    printCounts
+    printFinalReport
 
     return 0
 }
