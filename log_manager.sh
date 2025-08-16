@@ -84,7 +84,7 @@ function printFinalReport {
     printf "%-${col_width}s|" "Severity↓"
     for ((i = 0; i < n_fac; i++)); do
         fac="${facArr[$i]}"
-        printf "%-${col_width}s" "$fac"
+        printf "%-${col_width}s" " $fac"
     done
     echo
 
@@ -98,15 +98,15 @@ function printFinalReport {
 
     # Filas de resultados
     for sev in "${sevArr[@]}"; do
-        adjusted_width=$((col_width + 3))
-        printf "%-${adjusted_width}s|" " $sev"
+        printf "%-${col_width}s|" " $sev"
         for ((i = 0; i < n_fac; i++)); do
             fac="${facArr[$i]}"
             val="${sevFacCountArr["$sev:$fac"]:-0}"
-            printf "%-${col_width}s" "$val"
+            printf "%-${col_width}s" "   $val"
         done
         echo
     done
+
 }
 
 function parseLog {
