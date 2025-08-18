@@ -12,6 +12,9 @@ MAGENTA='\033[0;35m'
 CYAN='\033[0;36m'
 WHITE='\033[0;37m'
 GRAY='\e[0;37m'
+BOLD='\033[1m'
+UNDERLINE='\033[4m'
+HIGHLIGHT='\033[30;43m'
 ENDCOLOR='\033[0m'
 
 function handleError() {
@@ -36,23 +39,33 @@ function updateCounts {
 function printFinalReport {
 
     # Final log parsed
-    echo -e "--------- Log Messages Parsed  ---------------------------"
+    echo
+    echo
+    echo -e " ---------------   LOG MESSAGES PARSED   ---------------"
+    echo
+
+    printf " ${MAGENTA}%-8s${ENDCOLOR} ${WHITE}%-10s${ENDCOLOR} ${YELLOW}%-23s${ENDCOLOR} %s${ENDCOLOR}\n" "SEVERITY" "FACILITY" "DATE" "MESSAGE"
+    echo
 
     for ((i = 0; i < global_valid_logs; i++)); do
-        printf "%-8s %-10s %s %s\n" "${sevKeyMsg[$i]}" "${facKeyMsg[$i]}" "${dateMsg[$i]}" "${log_msgMsg[$i]}"
+        printf " ${MAGENTA}%-8s${ENDCOLOR} ${WHITE}%-10s${ENDCOLOR} ${YELLOW}%s${ENDCOLOR} %s\n" "${sevKeyMsg[$i]}" "${facKeyMsg[$i]}" "${dateMsg[$i]}" "${log_msgMsg[$i]}"
     done
 
-    echo -e "--------- Severity Counts ---------------------------"
-
-    # Necesitamos recorrer el array de nombres para poner los severity por orden (0,1, etc) y ya despues convertir el valor al nombre del severity
-    # e imprimir el resultado de sevCount
+    echo
+    echo
+    echo
+    echo -e " ${BLUE}---------------   COUNTS BY SEVERITY   ---------------${ENDCOLOR}"
+    echo
     for ((i = 0; i < ${#sevArr[@]}; i++)); do
         key="${sevArr[$i]}"
         count="${sevCountArr[$key]:-0}"
-        echo "${key}: ${count}"
-    done
+        echo -e " ${BLUE}${key}:${ENDCOLOR} ${count}" | column
+    done | column -x
 
-    echo -e "--------- Facility Counts ---------------------------"
+    echo
+    echo
+    echo
+    echo -e " --------- Facility Counts ---------------------------"
 
     # Necesitamos recorrer el array de nombres para poner los severity por orden (0,1, etc) y ya despues convertir el valor al nombre del severity
     # e imprimir el resultado de sevCount
@@ -60,13 +73,7 @@ function printFinalReport {
         key="${facArr[$i]}"
         count="${facCountArr[$key]:-0}"
         echo "${key}: ${count}"
-    done
-
-    echo -e "------------- Severity:Facility -------------------------------"
-
-    for key in "${!sevFacCountArr[@]}"; do
-        echo "$key: ${sevFacCountArr[$key]}"
-    done
+    done | column -x
 
     echo -e "------------------2d Table -------------------------------------"
 
@@ -149,7 +156,7 @@ function checkFile() {
     local regex='^[<][0-9]+>1[[:space:]]+[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+(-|[[^]]+])[[:space:]]+(.*)?'
 
     if [ ! -f "${file_path}" ]; then
-        echo "❌ El archivo no existe o está vacío."
+        echo -e "❌ El archivo no existe o está vacío."
         return 1
     fi
 
@@ -176,16 +183,26 @@ function checkFile() {
             updateCounts "$sevKey" "$facKey"
 
         else
-            ((invalid++))
-            echo "log in line ${line_number} not known"
+            ((invalid_logs++))
+            unknownLogs+=("$line_number")
         fi
     done <"${file_path}"
 
-    echo -e "----------------Report--------------"
-    echo "${line_number} logs analized"
-    echo "Valid: ${global_valid_logs} logs"
-    echo "Invalid: ${invalid_logs}"
+    echo
+    echo
+    echo -e "---------------   REPORT   ---------------"
+    echo
+    echo " ${line_number} logs analized"
+    echo " Valid: ${global_valid_logs} logs"
 
+    oldIFS=$IFS
+    IFS=','
+    joinedUnknown="${unknownLogs[*]}"
+    echo -e " ${RED}Invalid: ${invalid_logs} logs${ENDCOLOR}"
+    IFS="$oldIFS"
+    echo -e " ${RED}Unknown format log entries found in input file at line number(s): ${joinedUnknown}${ENDCOLOR}"
+    echo
+    echo
 }
 
 function main() {
@@ -206,6 +223,9 @@ trap ctrl_c INT
 # Severity and Facility arrays
 sevArr=("emerg" "alert" "crit" "err" "warn" "notice" "info" "debug")
 facArr=("kern" "user" "mail" "daemon" "auth" "syslog" "lpr" "news" "uucp" "cron" "authpriv" "ftp" "ntp" "audit" "alert" "reserved" "[Unknown]")
+
+# Unknown logs array
+declare -a unknownLogs
 
 # Counting arrays
 declare -A sevCountArr facCountArr sevFacCountArr
