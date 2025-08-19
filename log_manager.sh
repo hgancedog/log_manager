@@ -27,6 +27,15 @@ function ctrl_c() {
     exit 0
 }
 
+function paddingRes {
+    local str=$1
+    local str_length=${#str}
+    local empty_space=$(($(tput cols) - str_length))
+    local padding=$((empty_space / 2))
+
+    echo "$padding"
+}
+
 function updateCounts {
     local sevKey="$1"
     local facKey="$2"
@@ -41,7 +50,7 @@ function printFinalReport {
     # Final log parsed
     echo
     echo
-    echo -e " ---------------   LOG MESSAGES PARSED   ---------------"
+    echo -e " ${BLUE}---------------   LOG MESSAGES (PRI DECODED)   ---------------${ENDCOLOR}"
     echo
 
     printf " ${MAGENTA}%-8s${ENDCOLOR} ${WHITE}%-10s${ENDCOLOR} ${YELLOW}%-23s${ENDCOLOR} %s${ENDCOLOR}\n" "SEVERITY" "FACILITY" "DATE" "MESSAGE"
@@ -54,28 +63,37 @@ function printFinalReport {
     echo
     echo
     echo
-    echo -e " ${BLUE}---------------   COUNTS BY SEVERITY   ---------------${ENDCOLOR}"
+    # local sev_padding
+    # local sev_title="COUNTS BY SEVERITY"
+    # sev_padding=$(paddingRes "${sev_title}")
+    #
+    # printf "%*s${BLUE}%s${ENDCOLOR}\n" "$sev_padding" "" "$sev_title"
+    echo -e " ${MAGENTA}---------------  COUNTS BY SEVERITY  ---------------${ENDCOLOR}"
     echo
+
     for ((i = 0; i < ${#sevArr[@]}; i++)); do
-        key="${sevArr[$i]}"
-        count="${sevCountArr[$key]:-0}"
-        echo -e " ${BLUE}${key}:${ENDCOLOR} ${count}" | column
+        sevKey="${sevArr[$i]}"
+        sevCount="${sevCountArr[$sevKey]:-0}"
+        printf " ${MAGENTA}%-8s${ENDCOLOR}%-5s" "${sevKey}:" "${sevCount}"
+    done
+
+    echo
+    echo
+    echo
+    echo -e " ${WHITE}---------------  COUNTS BY FACILITY  ---------------${ENDCOLOR}"
+    echo
+
+    for facKey in "${facArr[@]}"; do
+        facCount="${facCountArr[$facKey]:-0}"
+        echo " ${facKey}: ${facCount}"
     done | column -x
 
     echo
     echo
     echo
-    echo -e " --------- Facility Counts ---------------------------"
 
-    # Necesitamos recorrer el array de nombres para poner los severity por orden (0,1, etc) y ya despues convertir el valor al nombre del severity
-    # e imprimir el resultado de sevCount
-    for ((i = 0; i < ${#facArr[@]}; i++)); do
-        key="${facArr[$i]}"
-        count="${facCountArr[$key]:-0}"
-        echo "${key}: ${count}"
-    done | column -x
-
-    echo -e "------------------2d Table -------------------------------------"
+    echo -e " ${YELLOW}---------------  TABLE FACILITY/SEVERITY BREAKDOWN  ---------------${ENDCOLOR}"
+    echo
 
     local term_width
     term_width=$(tput cols)
@@ -85,13 +103,13 @@ function printFinalReport {
     local col_width
     col_width=$((term_width / (n_fac + 3)))
 
-    echo -e "  Facility →"
+    echo -e "  ${BLUE}Facility →${ENDCOLOR}"
 
     # Cabecera de facilities
-    printf "%-${col_width}s|" "Severity↓"
+    printf "${RED}%-${col_width}s${ENDCOLOR}|" "Severity↓"
     for ((i = 0; i < n_fac; i++)); do
         fac="${facArr[$i]}"
-        printf "%-${col_width}s" " $fac"
+        printf "${BLUE}%-${col_width}s${ENDCOLOR}" " $fac"
     done
     echo
 
@@ -105,15 +123,17 @@ function printFinalReport {
 
     # Filas de resultados
     for sev in "${sevArr[@]}"; do
-        printf "%-${col_width}s|" " $sev"
+        printf "${RED}%-${col_width}s${ENDCOLOR}|" " $sev"
         for ((i = 0; i < n_fac; i++)); do
             fac="${facArr[$i]}"
             val="${sevFacCountArr["$sev:$fac"]:-0}"
-            printf "%-${col_width}s" "   $val"
+            printf "${GRAY}%-${col_width}s${ENDCOLOR}" "   $val"
         done
         echo
     done
 
+    echo
+    echo
 }
 
 function parseLog {
@@ -190,18 +210,22 @@ function checkFile() {
 
     echo
     echo
-    echo -e "---------------   REPORT   ---------------"
+    echo -e " ${RED}---------------   REPORT   ---------------${ENDCOLOR}"
     echo
     echo " ${line_number} logs analized"
     echo " Valid: ${global_valid_logs} logs"
 
     oldIFS=$IFS
-    IFS=','
-    joinedUnknown="${unknownLogs[*]}"
+
+    if [ ${#unknownLogs[@]} -eq 0 ]; then
+        joinedUnknown="---"
+    else
+        IFS=',' joinedUnknown="${unknownLogs[*]}"
+        IFS="$oldIFS"
+    fi
+
     echo -e " ${RED}Invalid: ${invalid_logs} logs${ENDCOLOR}"
-    IFS="$oldIFS"
-    echo -e " ${RED}Unknown format log entries found in input file at line number(s): ${joinedUnknown}${ENDCOLOR}"
-    echo
+    echo -e " ${RED}Invalid format log entries found in input file at line number(s): ${joinedUnknown}${ENDCOLOR}"
     echo
 }
 
