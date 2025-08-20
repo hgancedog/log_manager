@@ -27,15 +27,6 @@ function ctrl_c() {
     exit 0
 }
 
-function paddingRes {
-    local str=$1
-    local str_length=${#str}
-    local empty_space=$(($(tput cols) - str_length))
-    local padding=$((empty_space / 2))
-
-    echo "$padding"
-}
-
 function updateCounts {
     local sevKey="$1"
     local facKey="$2"
@@ -56,18 +47,16 @@ function printFinalReport {
     printf " ${MAGENTA}%-8s${ENDCOLOR} ${WHITE}%-10s${ENDCOLOR} ${YELLOW}%-23s${ENDCOLOR} %s${ENDCOLOR}\n" "SEVERITY" "FACILITY" "DATE" "MESSAGE"
     echo
 
+    # This ensures a clean file for each run.
+    : >"log_parsed.txt"
     for ((i = 0; i < global_valid_logs; i++)); do
         printf " ${MAGENTA}%-8s${ENDCOLOR} ${WHITE}%-10s${ENDCOLOR} ${YELLOW}%s${ENDCOLOR} %s\n" "${sevKeyMsg[$i]}" "${facKeyMsg[$i]}" "${dateMsg[$i]}" "${log_msgMsg[$i]}"
+        printf " %-8s %-10s %s %s\n" "${sevKeyMsg[$i]}" "${facKeyMsg[$i]}" "${dateMsg[$i]}" "${log_msgMsg[$i]}" >>"log_parsed.txt"
     done
 
     echo
     echo
     echo
-    # local sev_padding
-    # local sev_title="COUNTS BY SEVERITY"
-    # sev_padding=$(paddingRes "${sev_title}")
-    #
-    # printf "%*s${BLUE}%s${ENDCOLOR}\n" "$sev_padding" "" "$sev_title"
     echo -e " ${MAGENTA}---------------  COUNTS BY SEVERITY  ---------------${ENDCOLOR}"
     echo
 
@@ -109,7 +98,7 @@ function printFinalReport {
     printf "${RED}%-${col_width}s${ENDCOLOR}|" "Severity↓"
     for ((i = 0; i < n_fac; i++)); do
         fac="${facArr[$i]}"
-        printf "${BLUE}%-${col_width}s${ENDCOLOR}" " $fac"
+        printf "${BLUE}%-${col_width}s${ENDCOLOR}" "  $fac"
     done
     echo
 
@@ -127,12 +116,13 @@ function printFinalReport {
         for ((i = 0; i < n_fac; i++)); do
             fac="${facArr[$i]}"
             val="${sevFacCountArr["$sev:$fac"]:-0}"
-            printf "${GRAY}%-${col_width}s${ENDCOLOR}" "   $val"
+            printf "${GRAY}%-${col_width}s${ENDCOLOR}" "     $val"
         done
         echo
     done
 
     echo
+    echo -e " ---------------  ${RED}REPORT FINISHED${ENDCOLOR}  ---------------"
     echo
 }
 
@@ -173,6 +163,8 @@ function parseLog {
 function checkFile() {
 
     local file_path="$1"
+    local file_name
+    file_name="$(basename "${file_path}")"
     local regex='^[<][0-9]+>1[[:space:]]+[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+(-|[[^]]+])[[:space:]]+(.*)?'
 
     if [ ! -f "${file_path}" ]; then
@@ -210,8 +202,9 @@ function checkFile() {
 
     echo
     echo
-    echo -e " ${RED}---------------   REPORT   ---------------${ENDCOLOR}"
+    echo -e " ${RED}---------------  LOG MANAGER REPORT   ---------------${ENDCOLOR}"
     echo
+    echo -e " ${YELLOW}Analyzed file name:${ENDCOLOR} ${WHITE}${file_name}${ENDCOLOR}"
     echo " ${line_number} logs analized"
     echo " Valid: ${global_valid_logs} logs"
 
@@ -226,6 +219,9 @@ function checkFile() {
 
     echo -e " ${RED}Invalid: ${invalid_logs} logs${ENDCOLOR}"
     echo -e " ${RED}Invalid format log entries found in input file at line number(s): ${joinedUnknown}${ENDCOLOR}"
+    echo -e " Output file ${WHITE}'log_parsed.txt'${ENDCOLOR} created"
+    echo
+    echo -e " ${WHITE}Log messages have been parsed: the PRI value has been replaced with its corresponding Severity and Facility fields. The log messages are displayed below, and a copy has also been written to the output file to facilitate filtering with tools like grep (e.g., grep 'crit', grep 'err', etc.).${ENDCOLOR}"
     echo
 }
 
@@ -249,7 +245,7 @@ sevArr=("emerg" "alert" "crit" "err" "warn" "notice" "info" "debug")
 facArr=("kern" "user" "mail" "daemon" "auth" "syslog" "lpr" "news" "uucp" "cron" "authpriv" "ftp" "ntp" "audit" "alert" "reserved" "[Unknown]")
 
 # Unknown logs array
-declare -a unknownLogs
+declare -a unknownLogs sevKeyMsg facKeyMsg dateMsg log_msgMsg
 
 # Counting arrays
 declare -A sevCountArr facCountArr sevFacCountArr

@@ -1,0 +1,29 @@
+ emerg    user       2025-08-13T09:30:00Z  - [EMERGENCY][user] System is unusable due to user-level failure
+ alert    authpriv   2025-08-13T09:30:01Z  - [ALERT][authpriv] Immediate action required: privilege escalation
+ alert    mail       2025-08-13T09:30:02Z  - [ALERT][mail] Mail queue overflow detected
+ crit     daemon     2025-08-13T09:30:03Z  - [CRITICAL][daemon] Daemon failed to start: missing config
+ crit     auth       2025-08-13T09:30:04Z  - [CRITICAL][auth] Authentication subsystem failure
+ crit     syslog     2025-08-13T09:30:05Z  - [CRITICAL][syslog] Syslog daemon crashed unexpectedly
+ err      lpr        2025-08-13T09:30:06Z  - [ERROR][lpr] Print spooler encountered fatal error
+ err      news       2025-08-13T09:30:07Z  - [ERROR][news] News feed parsing failed
+ warn     uucp       2025-08-13T09:30:08Z  - [WARNING][uucp] UUCP transmission delay detected
+ warn     cron       2025-08-13T09:30:09Z  - [WARNING][clock] Clock drift exceeds threshold
+ warn     authpriv   2025-08-13T09:30:10Z  - [WARNING][authpriv] Suspicious login attempt flagged
+ notice   ftp        2025-08-13T09:30:11Z  - [NOTICE][ftp] FTP connection established successfully
+ notice   ntp        2025-08-13T09:30:12Z  - [NOTICE][ntp] NTP sync completed with minor offset
+ info     audit      2025-08-13T09:30:13Z  - [INFORMATIONAL][audit] Security scan completed
+ debug    alert      2025-08-13T09:30:14Z  - [DEBUG][alert] Console input buffer flushed
+ debug    reserved   2025-08-13T09:30:15Z  - [DEBUG][reserved] Solaris service restarted successfully
+ debug    daemon     2025-08-13T09:30:16Z  - [DEBUG][daemon] Debugging daemon initialization
+ crit     [Unknown]  2025-08-13T09:30:17Z  - [NOTICE][local2] Custom application heartbeat message
+ warn     [Unknown]  2025-08-13T09:30:18Z  - [WARNING][local3] Database backup incomplete
+ crit     cron       2025-08-16T15:10:00Z  - [CRITICAL][cron] Cron job for user 'root' failed with exit code 1
+ debug    [Unknown]  2025-08-16T15:10:01Z  - [DEBUG][local7] Detailed debug message for application failure
+ alert    [Unknown]  2025-08-16T15:10:02Z  - [ALERT][local1] High-priority alert: database connection pool exhausted
+ err      kern       2025-08-16T15:10:03Z  - [ERROR][kernel] Disk I/O error on device /dev/sda1
+ err      kern       2025-08-16T15:10:04Z  - [ERROR][kernel] Memory management unit failed to allocate 4KB page
+ err      kern       2025-08-16T15:10:05Z  - [ERROR][kernel] Driver for 'eth0' encountered a critical error
+ emerg    mail       2025-08-20T23:45:00+02:00 6>1 2025-08-20T23:45:00+02:00 la-muela.example.com maild 1234 ID47 - System mail queue corrupted — immediate action required
+ err      auth       2025-08-20T23:45:01+02:00 5>1 2025-08-20T23:45:01+02:00 la-muela.example.com sshd 5678 ID88 - Failed password attempt for user 'wsee' from 192.168.1.10
+ notice   news       2025-08-20T23:45:02+02:00 1>1 2025-08-20T23:45:02+02:00 la-muela.example.com newsd 4321 ID99 - News 
+ crit     user       2025-08-21T00:32:00+02:00 0>1 2025-08-21T00:32:00+02:00 la-muela.example.com userapp 9012 ID77 - Critical failure in user authentication module — immediate review required

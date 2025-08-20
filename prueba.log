@@ -26,3 +26,7 @@ lkdjflskjdjflksjdfj
 <3>1 2025-08-16T15:10:05Z localhost kernel - - - [ERROR][kernel] Driver for 'eth0' encountered a critical error
 cxvxlckvcxlkv
 sldjfslkdjfklsdjfldsjk
+<16>1 2025-08-20T23:45:00+02:00 la-muela.example.com maild 1234 ID47 - System mail queue corrupted — immediate action required
+<35>1 2025-08-20T23:45:01+02:00 la-muela.example.com sshd 5678 ID88 - Failed password attempt for user 'wsee' from 192.168.1.10
+<61>1 2025-08-20T23:45:02+02:00 la-muela.example.com newsd 4321 ID99 - News 
+<10>1 2025-08-21T00:32:00+02:00 la-muela.example.com userapp 9012 ID77 - Critical failure in user authentication module — immediate review required
