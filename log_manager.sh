@@ -38,7 +38,6 @@ function updateCounts {
 
 function printFinalReport {
 
-    # Final log parsed
     echo
     echo
     echo -e " ${BLUE}---------------   LOG MESSAGES (PRI DECODED)   ---------------${ENDCOLOR}"
@@ -53,6 +52,12 @@ function printFinalReport {
         printf " ${MAGENTA}%-8s${ENDCOLOR} ${WHITE}%-10s${ENDCOLOR} ${YELLOW}%s${ENDCOLOR} %s\n" "${sevKeyMsg[$i]}" "${facKeyMsg[$i]}" "${dateMsg[$i]}" "${log_msgMsg[$i]}"
         printf " %-8s %-10s %s %s\n" "${sevKeyMsg[$i]}" "${facKeyMsg[$i]}" "${dateMsg[$i]}" "${log_msgMsg[$i]}" >>"log_parsed.txt"
     done
+
+    if [ -f "log_parsed.txt" ]; then
+        global_outfile_msg=" ${YELLOW}A copy of the log messages, parsed with severity and facility indicators, has been saved to${ENDCOLOR}${WHITE} 'log_parse.txt'${ENDCOLOR}${YELLOW}. This makes it easy to filter using${ENDCOLOR} 'grep' command${YELLOW} by severity or facility${ENDCOLOR} (e.g., grep 'err' log_parse.txt)"
+    else
+        global_outfile_msg=" ${RED}Failed to create output file:${ENDCOLOR} ${WHITE}'log_parsed.txt'.${ENDCOLOR}"
+    fi
 
     echo
     echo
@@ -121,6 +126,10 @@ function printFinalReport {
         echo
     done
 
+    echo
+    echo
+    echo -e "${global_outfile_msg}"
+    echo
     echo
     echo -e " ---------------  ${RED}REPORT FINISHED${ENDCOLOR}  ---------------"
     echo
@@ -219,15 +228,10 @@ function checkFile() {
 
     echo -e " ${RED}Invalid: ${invalid_logs} logs${ENDCOLOR}"
     echo -e " ${RED}Invalid format log entries found in input file at line number(s): ${joinedUnknown}${ENDCOLOR}"
-    echo -e " Output file ${WHITE}'log_parsed.txt'${ENDCOLOR} created"
-    echo
-    echo -e " ${WHITE}Log messages have been parsed: the PRI value has been replaced with its corresponding Severity and Facility fields. The log messages are displayed below, and a copy has also been written to the output file to facilitate filtering with tools like grep (e.g., grep 'crit', grep 'err', etc.).${ENDCOLOR}"
     echo
 }
 
 function main() {
-
-    global_valid_logs=0
 
     checkFile "$1"
 
@@ -249,5 +253,9 @@ declare -a unknownLogs sevKeyMsg facKeyMsg dateMsg log_msgMsg
 
 # Counting arrays
 declare -A sevCountArr facCountArr sevFacCountArr
+
+global_valid_logs=0
+
+global_outfile_msg=""
 
 main "$@"
